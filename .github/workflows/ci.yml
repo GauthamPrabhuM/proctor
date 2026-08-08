@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (py${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest]
+        include:
+          - python-version: "3.13"
+            os: macos-latest
+          - python-version: "3.13"
+            os: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: pytest --cov --cov-report=term-missing
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check --output-format=github .
+      - run: ruff format --check .
+      - run: mypy
+
+  smoke:
+    name: end-to-end smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install .
+      # Verify the installed console script works against a generated transcript
+      # and that every output format is produced without error.
+      - name: Generate a transcript and audit it
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          d = pathlib.Path("logs/-tmp-demo"); d.mkdir(parents=True)
+          usage = {"input_tokens": 90000, "cache_creation":
+                   {"ephemeral_5m_input_tokens": 0, "ephemeral_1h_input_tokens": 0},
+                   "cache_read_input_tokens": 0, "output_tokens": 40}
+          rows = [{"type": "assistant", "sessionId": "s1",
+                   "timestamp": "2026-08-01T12:00:00Z",
+                   "message": {"id": f"m{i}", "model": "claude-opus-5",
+                               "content": [], "usage": usage}} for i in range(4)]
+          (d / "s1.jsonl").write_text("\n".join(json.dumps(r) for r in rows))
+          PY
+          proctor logs --no-color
+          proctor logs --json > report.json
+          proctor logs --json --html report.html
+          python -c "import json; d=json.load(open('report.json')); assert d['schema_version']==1; assert d['findings']"
+          test -s report.html
+      - name: Exit code contract
+        run: |
+          proctor logs --json --fail-over 1000000 > /dev/null
+          if proctor logs --json --fail-over 0 > /dev/null; then
+            echo "expected exit 1 when over budget"; exit 1
+          fi
+          if proctor /nonexistent > /dev/null 2>&1; then
+            echo "expected exit 2 for a missing path"; exit 1
+          fi
