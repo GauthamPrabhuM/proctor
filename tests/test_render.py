@@ -99,3 +99,50 @@ def test_html_handles_an_empty_report():
 
 def test_html_escape_covers_quotes_and_angle_brackets():
     assert html.escape('<a href="x">&') == "&lt;a href=&quot;x&quot;&gt;&amp;"
+
+
+def test_daily_chart_fills_quiet_days():
+    """A gap in activity must occupy real width, or the x-axis lies."""
+    report = sample_report()
+    report.daily = {"2026-08-01": 1.0, "2026-08-05": 2.0}
+
+    series = html._daily_series(report)
+    assert [d for d, _ in series] == [
+        "2026-08-01",
+        "2026-08-02",
+        "2026-08-03",
+        "2026-08-04",
+        "2026-08-05",
+    ]
+    assert [c for _, c in series] == [1.0, 0.0, 0.0, 0.0, 2.0]
+
+
+def test_quiet_days_draw_no_mark():
+    """A zero day must not render a stub bar that reads as spend."""
+    report = sample_report()
+    report.daily = {"2026-08-01": 1.0, "2026-08-03": 2.0}
+
+    markup = html.build(report)
+    # Three columns, but only the two days with spend carry a fill.
+    assert markup.count('class="col') == 3
+    assert markup.count('class="fill"') == 2
+
+
+def test_empty_daily_series_is_handled():
+    report = sample_report()
+    report.daily = {}
+    assert html._daily_series(report) == []
+    assert "No dated turns" in html.build(report)
+
+
+def test_cache_hit_status_thresholds():
+    assert html._hit_class(0.99) == "good"
+    assert html._hit_class(html.HIT_RATE_GOOD) == "good"
+    assert html._hit_class(0.70) == "warn"
+    assert html._hit_class(0.10) == "crit"
+
+
+def test_status_colour_is_never_the_only_signal():
+    """A colour-blind reader must still get the hit rate as a number."""
+    markup = html.build(sample_report())
+    assert "0%</span>" in markup or "%</span>" in markup

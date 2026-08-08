@@ -28,6 +28,8 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4", "pytest-cov>=4.1", "ruff>=0.6", "mypy>=1.8"]
+# Only needed to regenerate docs/proctor-overview.pdf; also requires Chrome.
+docs = ["pillow>=10.0"]
 
 [project.scripts]
 proctor = "proctor.cli:main"

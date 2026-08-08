@@ -163,12 +163,30 @@ paste a report into a public issue without reading it first.
 
 ## Documentation
 
+- [`docs/proctor-overview.pdf`](docs/proctor-overview.pdf) — illustrated overview
+  with real output: what it finds, and where the value is
 - [`docs/usage.md`](docs/usage.md) — task-oriented guide with worked examples
 - [`docs/findings.md`](docs/findings.md) — every check, threshold, and formula
 - [`docs/architecture.md`](docs/architecture.md) — how the pipeline fits together
 - [`docs/configuration.md`](docs/configuration.md) — pricing and defaults
 - [`docs/json-schema.md`](docs/json-schema.md) — the `--json` contract
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — adding a new check
+
+## Trying it without your own transcripts
+
+`examples/generate_demo.py` writes a deterministic synthetic corpus that trips
+every check, so you can see a full report before pointing proctor at anything of
+your own:
+
+```bash
+python examples/generate_demo.py /tmp/proctor-demo
+proctor /tmp/proctor-demo --days 90
+```
+
+That same corpus produces every figure in the PDF above — no real prompts are
+involved, which is why it can be committed. Regenerate the PDF with
+`pip install -e ".[docs]"` (plus Chrome) and
+`python examples/build_overview_pdf.py`.
 
 ## License
 
