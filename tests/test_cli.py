@@ -102,12 +102,19 @@ def test_html_output_is_self_contained(populated, tmp_path):
 
 
 def test_html_escapes_project_names(logs, tmp_path):
-    write_transcript(logs, "-tmp-<script>alert(1)", "sess-x", [assistant_turn()])
+    """A project name read off disk must reach the report escaped.
+
+    Windows forbids ``< > : " | ? *`` in filenames, so this uses ``&`` — the one
+    HTML metacharacter that is a legal path character everywhere. The angle
+    bracket and quote cases are covered directly in ``test_render.py``.
+    """
+    write_transcript(logs, "-tmp-a&b", "sess-x", [assistant_turn()])
     target = tmp_path / "r.html"
     invoke([str(logs), "--json", "--html", str(target)])
+
     markup = target.read_text(encoding="utf-8")
-    assert "<script>alert(1)</script>" not in markup
-    assert "&lt;script&gt;" in markup
+    assert "/tmp/a&amp;b" in markup
+    assert "/tmp/a&b<" not in markup
 
 
 def test_invalid_days_is_rejected(populated):

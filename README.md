@@ -163,6 +163,7 @@ paste a report into a public issue without reading it first.
 
 ## Documentation
 
+- [`docs/usage.md`](docs/usage.md) — task-oriented guide with worked examples
 - [`docs/findings.md`](docs/findings.md) — every check, threshold, and formula
 - [`docs/architecture.md`](docs/architecture.md) — how the pipeline fits together
 - [`docs/configuration.md`](docs/configuration.md) — pricing and defaults
