@@ -1,14 +1,14 @@
 # proctor
 
 **A cost auditor for your own agentic workflows.** proctor reads your Claude Code
-session transcripts and tells you where tokens are going — with a dollar figure
+session transcripts and tells you where tokens are going, with a dollar figure
 on every finding, so you can tell a $40 problem from a $0.40 one.
 
 It runs entirely on your machine, has no dependencies beyond the Python standard
 library, and never sends your transcripts anywhere.
 
 ```
-proctor — 5 sessions, 1,425 API turns  (last 30 days)
+proctor: 5 sessions, 1,425 API turns  (last 30 days)
 
   estimated spend                     $644.06
   input (uncached)             84,051 tok
@@ -66,7 +66,7 @@ Run `proctor --help` for the full flag list and the finding-kind reference.
 ### Organization-wide reporting
 
 Local transcripts only cover one machine. For org-level totals, proctor can read
-the Anthropic Admin API — per-model token consumption, cache hit rates, and
+the Anthropic Admin API: per-model token consumption, cache hit rates, and
 billed cost:
 
 ```bash
@@ -99,7 +99,7 @@ proctor --days 1 --fail-over 5.00
 | Finding | What it means |
 |---|---|
 | **Cold context** | Large prompt prefixes reprocessed uncached mid-session. Cache reads cost 10% of base input, so this is the single most expensive mistake available. |
-| **Ballooned session** | Context grew past 120k tokens over many turns while producing almost no output — the session is mostly re-reading itself. |
+| **Ballooned session** | Context grew past 120k tokens over many turns while producing almost no output. The session is mostly re-reading itself. |
 | **Repeated context** | The same large block pasted into several sessions. It belongs in `CLAUDE.md`, a skill, or a file the agent reads on demand. |
 | **Redundant tool calls** | The same tool call, byte-identical arguments, issued repeatedly in one session. Each repeat pulls the same result back into context. |
 | **Oversized prompt** | A prompt far above your own median. That text rides along in context for every turn that follows it. |
@@ -124,7 +124,7 @@ for finding in report.findings[:3]:
     print(finding.kind, round(finding.waste, 2), finding.detail)
 ```
 
-The JSON output is a versioned contract — see
+The JSON output is a versioned contract. See
 [`docs/json-schema.md`](docs/json-schema.md).
 
 ## How accurate is this?
@@ -135,11 +135,11 @@ plainly:
 
 - **Costs are estimates at list prices.** They will not match an invoice. They
   ignore negotiated rates, batch discounts, and subscription plans. If you are on
-  a Claude Code Max or Team plan, treat the dollar figures as *relative* signal —
+  a Claude Code Max or Team plan, treat the dollar figures as *relative* signal:
   useful for ranking sessions, not for reconciling a bill.
 - **Prompt and tool-result sizes are approximated** at four characters per token,
-  because the API does not report per-block usage. Findings that rely on this —
-  oversized prompts, repeated context, redundant tool calls — are approximate.
+  because the API does not report per-block usage. Findings that rely on this
+  (oversized prompts, repeated context, redundant tool calls) are approximate.
 - **Waste estimates are deliberately conservative** and use fixed recovery
   factors rather than claiming a perfect counterfactual. `docs/findings.md` shows
   every coefficient and the reasoning behind it. They are a prioritized list of
@@ -149,7 +149,7 @@ plainly:
   Rank by individual finding; don't read the total as a recoverable sum.
 
 Prices are current as of August 2026 and can be overridden without touching the
-source — see [`docs/configuration.md`](docs/configuration.md).
+source. See [`docs/configuration.md`](docs/configuration.md).
 
 ## Privacy
 
@@ -158,19 +158,19 @@ explicitly pass `--admin`.
 
 The reports it writes do contain excerpts of your own prompts (up to 110
 characters per finding), because a finding you cannot identify is not actionable.
-That means **`--json` and `--html` output should be treated as private** — do not
+That means **`--json` and `--html` output should be treated as private**. Do not
 paste a report into a public issue without reading it first.
 
 ## Documentation
 
-- [`docs/proctor-overview.pdf`](docs/proctor-overview.pdf) — illustrated overview
+- [`docs/proctor-overview.pdf`](docs/proctor-overview.pdf): illustrated overview
   with real output: what it finds, and where the value is
-- [`docs/usage.md`](docs/usage.md) — task-oriented guide with worked examples
-- [`docs/findings.md`](docs/findings.md) — every check, threshold, and formula
-- [`docs/architecture.md`](docs/architecture.md) — how the pipeline fits together
-- [`docs/configuration.md`](docs/configuration.md) — pricing and defaults
-- [`docs/json-schema.md`](docs/json-schema.md) — the `--json` contract
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — adding a new check
+- [`docs/usage.md`](docs/usage.md): task-oriented guide with worked examples
+- [`docs/findings.md`](docs/findings.md): every check, threshold, and formula
+- [`docs/architecture.md`](docs/architecture.md): how the pipeline fits together
+- [`docs/configuration.md`](docs/configuration.md): pricing and defaults
+- [`docs/json-schema.md`](docs/json-schema.md): the `--json` contract
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): adding a new check
 
 ## Trying it without your own transcripts
 
@@ -183,11 +183,11 @@ python examples/generate_demo.py /tmp/proctor-demo
 proctor /tmp/proctor-demo --days 90
 ```
 
-That same corpus produces every figure in the PDF above — no real prompts are
+That same corpus produces every figure in the PDF above. No real prompts are
 involved, which is why it can be committed. Regenerate the PDF with
 `pip install -e ".[docs]"` (plus Chrome) and
 `python examples/build_overview_pdf.py`.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
